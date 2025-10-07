@@ -1,1 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sarvam AI Multilingual Translator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .api-section {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .api-section label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .api-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .api-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .translator-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-section, .output-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .language-select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 10px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .language-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .output-section textarea {
+            background: #f8f9ff;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95em;
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .translate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .translate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .translate-btn:active {
+            transform: translateY(0);
+        }
+
+        .translate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .char-count {
+            text-align: right;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .translator-box {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Sarvam AI Translator</h1>
+            <p>Translate between English and 22+ Indian languages</p>
+        </div>
+
+        <div class="api-section">
+            <label for="apiKey">Enter Your Sarvam AI API Key:</label>
+            <input type="password" id="apiKey" placeholder="api_xxx_xxxxxxxxxxxxxxxxxx">
+        </div>
+
+        <div class="translator-box">
+            <div class="input-section">
+                <label for="sourceLanguage">Source Language:</label>
+                <select id="sourceLanguage" class="language-select">
+                    <option value="auto">Auto Detect (Mayura only)</option>
+                    <option value="en-IN">English</option>
+                    <option value="hi-IN">Hindi - हिन्दी</option>
+                    <option value="bn-IN">Bengali - বাংলা</option>
+                    <option value="te-IN">Telugu - తెలుగు</option>
+                    <option value="mr-IN">Marathi - मराठी</option>
+                    <option value="ta-IN">Tamil - தமிழ்</option>
+                    <option value="gu-IN">Gujarati - ગુજરાતી</option>
+                    <option value="kn-IN">Kannada - ಕನ್ನಡ</option>
+                    <option value="ml-IN">Malayalam - മലയാളം</option>
+                    <option value="pa-IN">Punjabi - ਪੰਜਾਬੀ</option>
+                    <option value="od-IN">Odia - ଓଡ଼ିଆ</option>
+                    <option value="ur-IN">Urdu - اردو</option>
+                    <option value="as-IN">Assamese - অসমীয়া</option>
+                    <option value="brx-IN">Bodo - बड़ो</option>
+                    <option value="doi-IN">Dogri - डोगरी</option>
+                    <option value="kok-IN">Konkani - कोंकणी</option>
+                    <option value="ks-IN">Kashmiri - کٲشُر</option>
+                    <option value="mai-IN">Maithili - मैथिली</option>
+                    <option value="mni-IN">Manipuri - মৈতৈলোন্</option>
+                    <option value="ne-IN">Nepali - नेपाली</option>
+                    <option value="sa-IN">Sanskrit - संस्कृत</option>
+                    <option value="sat-IN">Santali - ᱥᱟᱱᱛᱟᱲᱤ</option>
+                    <option value="sd-IN">Sindhi - سنڌي</option>
+                </select>
+                <textarea id="inputText" placeholder="Enter text to translate..."></textarea>
+                <div class="char-count" id="charCount">0 / 2000 characters</div>
+            </div>
+
+            <div class="output-section">
+                <label for="targetLanguage">Target Language:</label>
+                <select id="targetLanguage" class="language-select">
+                    <option value="en-IN">English</option>
+                    <option value="hi-IN" selected>Hindi - हिन्दी</option>
+                    <option value="bn-IN">Bengali - বাংলা</option>
+                    <option value="te-IN">Telugu - తెలుగు</option>
+                    <option value="mr-IN">Marathi - मराठी</option>
+                    <option value="ta-IN">Tamil - தமிழ்</option>
+                    <option value="gu-IN">Gujarati - ગુજરાતી</option>
+                    <option value="kn-IN">Kannada - ಕನ್ನಡ</option>
+                    <option value="ml-IN">Malayalam - മലയാളം</option>
+                    <option value="pa-IN">Punjabi - ਪੰਜਾਬੀ</option>
+                    <option value="od-IN">Odia - ଓଡ଼ିଆ</option>
+                    <option value="ur-IN">Urdu - اردو</option>
+                    <option value="as-IN">Assamese - অসমীয়া</option>
+                    <option value="brx-IN">Bodo - बड़ो</option>
+                    <option value="doi-IN">Dogri - डोगरी</option>
+                    <option value="kok-IN">Konkani - कोंकणी</option>
+                    <option value="ks-IN">Kashmiri - کٲشُر</option>
+                    <option value="mai-IN">Maithili - मैथिली</option>
+                    <option value="mni-IN">Manipuri - মৈতৈলোন্</option>
+                    <option value="ne-IN">Nepali - नेपाली</option>
+                    <option value="sa-IN">Sanskrit - संस्कृत</option>
+                    <option value="sat-IN">Santali - ᱥᱟᱱᱛᱟᱲᱤ</option>
+                    <option value="sd-IN">Sindhi - سنڌي</option>
+                </select>
+                <textarea id="outputText" placeholder="Translation will appear here..." readonly></textarea>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="modelSelect">Model:</label>
+                <select id="modelSelect">
+                    <option value="mayura:v1">Mayura v1 (12 languages, auto-detect)</option>
+                    <option value="sarvam-translate:v1">Sarvam Translate v1 (22 languages)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="modeSelect">Translation Mode:</label>
+                <select id="modeSelect">
+                    <option value="formal">Formal</option>
+                    <option value="classic-colloquial">Classic Colloquial (Mayura only)</option>
+                    <option value="modern-colloquial">Modern Colloquial (Mayura only)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="numeralFormat">Numeral Format:</label>
+                <select id="numeralFormat">
+                    <option value="international">International (0-9)</option>
+                    <option value="native">Native Script</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button class="translate-btn" id="translateBtn" onclick="translateText()">Translate</button>
+        </div>
+
+        <div class="loader" id="loader"></div>
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+    </div>
+
+    <script>
+        const inputText = document.getElementById('inputText');
+        const charCount = document.getElementById('charCount');
+        const modelSelect = document.getElementById('modelSelect');
+        const modeSelect = document.getElementById('modeSelect');
+
+        // Character counter
+        inputText.addEventListener('input', () => {
+            const length = inputText.value.length;
+            const maxLength = modelSelect.value === 'mayura:v1' ? 1000 : 2000;
+            charCount.textContent = `${length} / ${maxLength} characters`;
+            
+            if (length > maxLength) {
+                charCount.style.color = '#c33';
+            } else {
+                charCount.style.color = '#666';
+            }
+        });
+
+        // Update character limit when model changes
+        modelSelect.addEventListener('change', () => {
+            const event = new Event('input');
+            inputText.dispatchEvent(event);
+            
+            // Update mode options based on model
+            if (modelSelect.value === 'sarvam-translate:v1') {
+                modeSelect.value = 'formal';
+                modeSelect.querySelectorAll('option').forEach(opt => {
+                    if (opt.value !== 'formal') {
+                        opt.disabled = true;
+                    }
+                });
+            } else {
+                modeSelect.querySelectorAll('option').forEach(opt => {
+                    opt.disabled = false;
+                });
+            }
+        });
+
+        function showMessage(type, message) {
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+            
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            
+            if (type === 'error') {
+                errorMsg.textContent = message;
+                errorMsg.style.display = 'block';
+            } else {
+                successMsg.textContent = message;
+                successMsg.style.display = 'block';
+            }
+            
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+                successMsg.style.display = 'none';
+            }, 5000);
+        }
+
+        async function translateText() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const input = document.getElementById('inputText').value.trim();
+            const sourceLanguage = document.getElementById('sourceLanguage').value;
+            const targetLanguage = document.getElementById('targetLanguage').value;
+            const model = document.getElementById('modelSelect').value;
+            const mode = document.getElementById('modeSelect').value;
+            const numeralFormat = document.getElementById('numeralFormat').value;
+            const outputText = document.getElementById('outputText');
+            const loader = document.getElementById('loader');
+            const translateBtn = document.getElementById('translateBtn');
+
+            // Validation
+            if (!apiKey) {
+                showMessage('error', 'Please enter your Sarvam AI API key');
+                return;
+            }
+
+            if (!input) {
+                showMessage('error', 'Please enter text to translate');
+                return;
+            }
+
+            const maxLength = model === 'mayura:v1' ? 1000 : 2000;
+            if (input.length > maxLength) {
+                showMessage('error', `Text exceeds maximum length of ${maxLength} characters`);
+                return;
+            }
+
+            if (sourceLanguage === targetLanguage && sourceLanguage !== 'auto') {
+                showMessage('error', 'Source and target languages cannot be the same');
+                return;
+            }
+
+            // Show loader
+            loader.style.display = 'block';
+            translateBtn.disabled = true;
+            outputText.value = 'Translating...';
+
+            try {
+                const response = await fetch('https://api.sarvam.ai/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'api-subscription-key': apiKey
+                    },
+                    body: JSON.stringify({
+                        input: input,
+                        source_language_code: sourceLanguage,
+                        target_language_code: targetLanguage,
+                        speaker_gender: 'Male',
+                        mode: mode,
+                        model: model,
+                        enable_preprocessing: false,
+                        numerals_format: numeralFormat
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    outputText.value = data.translated_text || 'No translation available';
+                    showMessage('success', 'Translation completed successfully!');
+                } else {
+                    outputText.value = '';
+                    showMessage('error', `Error: ${data.message || 'Translation failed'}`);
+                }
+            } catch (error) {
+                outputText.value = '';
+                showMessage('error', `Network error: ${error.message}`);
+            } finally {
+                loader.style.display = 'none';
+                translateBtn.disabled = false;
+            }
+        }
+
+        // Allow Enter key to translate (with Shift+Enter for new line)
+        inputText.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                translateText();
+            }
+        });
+    </script>
+</body>
+</html>
